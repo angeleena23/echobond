@@ -16,7 +16,6 @@ st.set_page_config(
 
 load_dotenv()
 
-# Read API key from local .env or Streamlit Cloud Secrets
 API_KEY = os.getenv("GNANI_API_KEY_ID")
 
 if not API_KEY:
@@ -38,6 +37,7 @@ defaults = {
     "daily_wage": 300,
     "advance": 100,
     "received": 0,
+    "transcribing": False,
 }
 
 for key, value in defaults.items():
@@ -50,15 +50,8 @@ for key, value in defaults.items():
 
 st.html("""
 <style>
-
-/* PAGE BACKGROUND */
-
 .stApp {
-    background: linear-gradient(
-        180deg,
-        #f5f7ed 0%,
-        #ffffff 65%
-    );
+    background: linear-gradient(180deg, #f5f7ed 0%, #ffffff 65%);
     color: #20352d !important;
 }
 
@@ -68,19 +61,13 @@ st.html("""
     padding-bottom: 3rem;
 }
 
-/* HERO SECTION */
-
 .hero {
-    background: linear-gradient(
-        135deg,
-        #173f35,
-        #286653
-    );
+    background: linear-gradient(135deg, #173f35, #286653);
     padding: 35px 30px;
     border-radius: 24px;
-    color: #ffffff !important;
+    color: white !important;
     margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(23, 63, 53, 0.13);
+    box-shadow: 0 10px 30px rgba(23,63,53,0.13);
 }
 
 .hero-tag {
@@ -91,23 +78,20 @@ st.html("""
     font-size: 12px;
     letter-spacing: 1px;
     margin-bottom: 15px;
-    color: #ffffff !important;
+    color: white !important;
 }
 
 .hero h1 {
     font-size: 42px;
     margin: 0;
-    color: #ffffff !important;
+    color: white !important;
     font-weight: 800;
 }
 
 .hero p {
     color: #e1eee8 !important;
     font-size: 16px;
-    margin-bottom: 0;
 }
-
-/* GENERAL TEXT */
 
 .stApp p,
 .stApp label,
@@ -115,34 +99,26 @@ st.html("""
 .stApp h2,
 .stApp h3,
 .stApp h4,
-.stApp [data-testid="stMarkdownContainer"],
-.stApp [data-testid="stMetricLabel"],
-.stApp [data-testid="stMetricValue"] {
+.stApp [data-testid="stMarkdownContainer"] {
     color: #20352d !important;
 }
-
-/* HERO TEXT OVERRIDE */
 
 .hero,
 .hero h1,
 .hero p,
 .hero .hero-tag {
-    color: #ffffff !important;
+    color: white !important;
 }
 
 .hero p {
     color: #e1eee8 !important;
 }
 
-/* INPUT FIELDS */
-
 .stApp input,
 .stApp textarea {
     color: #20352d !important;
-    background-color: #ffffff !important;
+    background-color: white !important;
 }
-
-/* METRIC CARDS */
 
 div[data-testid="stMetric"] {
     background: #f1f6ef;
@@ -160,8 +136,6 @@ div[data-testid="stMetricValue"] {
     font-weight: 800 !important;
 }
 
-/* SUCCESS, WARNING AND INFO ALERTS */
-
 div[data-testid="stAlert"] {
     border-radius: 12px !important;
 }
@@ -172,15 +146,11 @@ div[data-testid="stAlert"] span {
     color: #ffffff !important;
 }
 
-/* BUTTONS */
-
 div.stButton > button {
     border-radius: 12px;
     font-weight: 700;
     min-height: 45px;
 }
-
-/* FOOTER */
 
 .footer-note {
     text-align: center;
@@ -192,18 +162,12 @@ div.stButton > button {
 .footer-note p {
     color: #64736a !important;
 }
-
 </style>
 
 <div class="hero">
-    <div class="hero-tag">
-        VOICE-BASED WORK AGREEMENT RECORD
-    </div>
-
+    <div class="hero-tag">VOICE-BASED WORK AGREEMENT RECORD</div>
     <h1>ECHOBOND 🤝</h1>
-
     <p>A promise spoken. A record remembered.</p>
-
     <p style="font-size:14px; margin-top:12px;">
         Record your work agreement, keep track of payment,
         and remember what was promised.
@@ -212,7 +176,7 @@ div.stButton > button {
 """)
 
 # --------------------------------------------------
-# AUDIO UPLOAD AND GNANI TRANSCRIPTION
+# AUDIO UPLOAD
 # --------------------------------------------------
 
 st.markdown("### 🎙️ Record your agreement")
@@ -239,13 +203,18 @@ uploaded_file = st.file_uploader(
     help="Audio files only. Video files are not supported."
 )
 
+# --------------------------------------------------
+# GNANI TRANSCRIPTION
+# --------------------------------------------------
+
 if uploaded_file is not None:
 
     st.audio(uploaded_file)
 
     if st.button(
         "✨ Convert speech to text",
-        use_container_width=True
+        use_container_width=True,
+        disabled=st.session_state["transcribing"]
     ):
 
         if not API_KEY:
@@ -253,10 +222,12 @@ if uploaded_file is not None:
             st.error("Gnani API key not found.")
 
             st.info(
-                "Add GNANI_API_KEY_ID to your Streamlit Cloud Secrets."
+                "Add GNANI_API_KEY_ID to Streamlit Cloud Secrets."
             )
 
         else:
+
+            st.session_state["transcribing"] = True
 
             language_code, preferred_language = (
                 language_options[selected_language]
@@ -295,37 +266,7 @@ if uploaded_file is not None:
                         timeout=180
                     )
 
-                if response.status_code == 504:
-
-                    st.error(
-                        "Gnani AI took too long to respond."
-                    )
-
-                    st.info(
-                        "Please try again later or use a shorter recording."
-                    )
-
-                elif response.status_code == 401:
-
-                    st.error(
-                        "Gnani API rejected the key (401 Unauthorized)."
-                    )
-
-                    st.info(
-                        "Check your Gnani dashboard and Streamlit Cloud "
-                        "Secrets. Make sure the API key is active "
-                        "and copied correctly."
-                    )
-
-                elif response.status_code != 200:
-
-                    st.error(
-                        f"Gnani API error: {response.status_code}"
-                    )
-
-                    st.caption(response.text[:1000])
-
-                else:
+                if response.status_code == 200:
 
                     result = response.json()
                     transcript = result.get("transcript", "")
@@ -335,9 +276,7 @@ if uploaded_file is not None:
                         st.session_state["transcript"] = transcript
                         st.session_state["agreement_saved"] = False
 
-                        st.success(
-                            "Transcription completed!"
-                        )
+                        st.success("Transcription completed!")
 
                     else:
 
@@ -345,6 +284,46 @@ if uploaded_file is not None:
                             "No transcript returned. "
                             "Please try another recording."
                         )
+
+                elif response.status_code == 401:
+
+                    st.error(
+                        "Gnani API rejected the key (401 Unauthorized)."
+                    )
+
+                    st.info(
+                        "Check that your API key is active and "
+                        "correctly configured in Streamlit Cloud Secrets."
+                    )
+
+                elif response.status_code == 429:
+
+                    st.warning(
+                        "Gnani AI is already processing another request."
+                    )
+
+                    st.info(
+                        "Please wait for the earlier request to finish "
+                        "before trying again. Avoid repeated clicks."
+                    )
+
+                elif response.status_code == 504:
+
+                    st.error(
+                        "Gnani AI took too long to respond."
+                    )
+
+                    st.info(
+                        "Try again later or upload a shorter recording."
+                    )
+
+                else:
+
+                    st.error(
+                        f"Gnani API error: {response.status_code}"
+                    )
+
+                    st.caption(response.text[:1000])
 
             except requests.exceptions.Timeout:
 
@@ -355,16 +334,17 @@ if uploaded_file is not None:
 
             except requests.exceptions.RequestException as e:
 
-                st.error(
-                    f"Could not connect to Gnani AI: {e}"
-                )
+                st.error(f"Could not connect to Gnani AI: {e}")
 
             except ValueError:
 
                 st.error(
-                    "Gnani AI returned an unexpected response. "
-                    "Please try again."
+                    "Gnani AI returned an unexpected response."
                 )
+
+            finally:
+
+                st.session_state["transcribing"] = False
 
 # --------------------------------------------------
 # REVIEW AND SAVE AGREEMENT
@@ -460,8 +440,6 @@ expected_payment = max(
 )
 
 received = st.session_state["received"]
-
-difference = received - expected_payment
 
 st.markdown("#### Payment summary")
 
@@ -560,15 +538,10 @@ if st.session_state["agreement_saved"]:
 
 st.html("""
 <div class="footer-note">
-
-    <p>
-        ECHOBOND 🤝 · A promise spoken. A record remembered.
-    </p>
-
+    <p>ECHOBOND 🤝 · A promise spoken. A record remembered.</p>
     <p>
         This is a personal record-keeping tool, not legal proof
         or a substitute for a written agreement.
     </p>
-
 </div>
 """)
