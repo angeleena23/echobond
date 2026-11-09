@@ -16,7 +16,7 @@ st.set_page_config(
 
 load_dotenv()
 
-# Read API key locally or from Streamlit Cloud Secrets
+# Read API key from local .env or Streamlit Cloud Secrets
 API_KEY = os.getenv("GNANI_API_KEY_ID")
 
 if not API_KEY:
@@ -50,133 +50,148 @@ for key, value in defaults.items():
 
 st.html("""
 <style>
-    .stApp {
-        background: linear-gradient(
-            180deg,
-            #f5f7ed 0%,
-            #ffffff 65%
-        );
-        color: #20352d !important;
-    }
 
-    .block-container {
-        max-width: 850px;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-    }
+/* PAGE BACKGROUND */
 
-    /* HERO */
+.stApp {
+    background: linear-gradient(
+        180deg,
+        #f5f7ed 0%,
+        #ffffff 65%
+    );
+    color: #20352d !important;
+}
 
-    .hero {
-        background: linear-gradient(
-            135deg,
-            #173f35,
-            #286653
-        );
-        padding: 35px 30px;
-        border-radius: 24px;
-        color: #ffffff !important;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(23, 63, 53, 0.13);
-    }
+.block-container {
+    max-width: 850px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
 
-    .hero-tag {
-        display: inline-block;
-        background: rgba(255,255,255,0.15);
-        padding: 6px 12px;
-        border-radius: 30px;
-        font-size: 12px;
-        letter-spacing: 1px;
-        margin-bottom: 15px;
-        color: #ffffff !important;
-    }
+/* HERO SECTION */
 
-    .hero h1 {
-        font-size: 42px;
-        margin: 0;
-        color: #ffffff !important;
-        font-weight: 800;
-    }
+.hero {
+    background: linear-gradient(
+        135deg,
+        #173f35,
+        #286653
+    );
+    padding: 35px 30px;
+    border-radius: 24px;
+    color: #ffffff !important;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(23, 63, 53, 0.13);
+}
 
-    .hero p {
-        color: #e1eee8 !important;
-        font-size: 16px;
-        margin-bottom: 0;
-    }
+.hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    color: #ffffff !important;
+}
 
-    /* GENERAL TEXT CONTRAST */
+.hero h1 {
+    font-size: 42px;
+    margin: 0;
+    color: #ffffff !important;
+    font-weight: 800;
+}
 
-    .stApp p,
-    .stApp label,
-    .stApp h1,
-    .stApp h2,
-    .stApp h3,
-    .stApp h4,
-    .stApp [data-testid="stMarkdownContainer"],
-    .stApp [data-testid="stMetricLabel"],
-    .stApp [data-testid="stMetricValue"],
-    .stApp [data-testid="stMetricDelta"] {
-        color: #20352d !important;
-    }
+.hero p {
+    color: #e1eee8 !important;
+    font-size: 16px;
+    margin-bottom: 0;
+}
 
-    /* Preserve hero colours */
-    .hero,
-    .hero h1,
-    .hero p,
-    .hero .hero-tag {
-        color: #ffffff !important;
-    }
+/* GENERAL TEXT */
 
-    .hero p {
-        color: #e1eee8 !important;
-    }
+.stApp p,
+.stApp label,
+.stApp h1,
+.stApp h2,
+.stApp h3,
+.stApp h4,
+.stApp [data-testid="stMarkdownContainer"],
+.stApp [data-testid="stMetricLabel"],
+.stApp [data-testid="stMetricValue"] {
+    color: #20352d !important;
+}
 
-    /* INPUT TEXT */
+/* HERO TEXT OVERRIDE */
 
-    .stApp input,
-    .stApp textarea {
-        color: #20352d !important;
-        background-color: #ffffff !important;
-    }
+.hero,
+.hero h1,
+.hero p,
+.hero .hero-tag {
+    color: #ffffff !important;
+}
 
-    /* METRIC CARDS */
+.hero p {
+    color: #e1eee8 !important;
+}
 
-    div[data-testid="stMetric"] {
-        background: #f1f6ef;
-        padding: 15px;
-        border-radius: 14px;
-        border: 1px solid #e1eadf;
-    }
+/* INPUT FIELDS */
 
-    div[data-testid="stMetricLabel"] {
-        color: #52665b !important;
-    }
+.stApp input,
+.stApp textarea {
+    color: #20352d !important;
+    background-color: #ffffff !important;
+}
 
-    div[data-testid="stMetricValue"] {
-        color: #173f35 !important;
-        font-weight: 800 !important;
-    }
+/* METRIC CARDS */
 
-    /* BUTTONS */
+div[data-testid="stMetric"] {
+    background: #f1f6ef;
+    padding: 15px;
+    border-radius: 14px;
+    border: 1px solid #e1eadf;
+}
 
-    div.stButton > button {
-        border-radius: 12px;
-        font-weight: 700;
-        min-height: 45px;
-    }
+div[data-testid="stMetricLabel"] {
+    color: #52665b !important;
+}
 
-    /* FOOTER */
+div[data-testid="stMetricValue"] {
+    color: #173f35 !important;
+    font-weight: 800 !important;
+}
 
-    .footer-note {
-        text-align: center;
-        color: #64736a !important;
-        font-size: 12px;
-        padding-top: 25px;
-    }
+/* SUCCESS, WARNING AND INFO ALERTS */
 
-    .footer-note p {
-        color: #64736a !important;
-    }
+div[data-testid="stAlert"] {
+    border-radius: 12px !important;
+}
+
+div[data-testid="stAlert"] p,
+div[data-testid="stAlert"] div,
+div[data-testid="stAlert"] span {
+    color: #ffffff !important;
+}
+
+/* BUTTONS */
+
+div.stButton > button {
+    border-radius: 12px;
+    font-weight: 700;
+    min-height: 45px;
+}
+
+/* FOOTER */
+
+.footer-note {
+    text-align: center;
+    color: #64736a !important;
+    font-size: 12px;
+    padding-top: 25px;
+}
+
+.footer-note p {
+    color: #64736a !important;
+}
 
 </style>
 
@@ -225,21 +240,24 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
+
     st.audio(uploaded_file)
 
     if st.button(
         "✨ Convert speech to text",
         use_container_width=True
     ):
+
         if not API_KEY:
+
             st.error("Gnani API key not found.")
 
             st.info(
-                "On Streamlit Cloud, add GNANI_API_KEY_ID "
-                "under App Settings → Secrets."
+                "Add GNANI_API_KEY_ID to your Streamlit Cloud Secrets."
             )
 
         else:
+
             language_code, preferred_language = (
                 language_options[selected_language]
             )
@@ -264,9 +282,11 @@ if uploaded_file is not None:
             }
 
             try:
+
                 with st.spinner(
                     "Gnani AI is listening to your recording..."
                 ):
+
                     response = requests.post(
                         API_URL,
                         headers=headers,
@@ -276,6 +296,7 @@ if uploaded_file is not None:
                     )
 
                 if response.status_code == 504:
+
                     st.error(
                         "Gnani AI took too long to respond."
                     )
@@ -285,17 +306,19 @@ if uploaded_file is not None:
                     )
 
                 elif response.status_code == 401:
+
                     st.error(
                         "Gnani API rejected the key (401 Unauthorized)."
                     )
 
                     st.info(
-                        "Check your API key in your Gnani dashboard "
-                        "and Streamlit Cloud Secrets. Make sure the "
-                        "key is active and copied correctly."
+                        "Check your Gnani dashboard and Streamlit Cloud "
+                        "Secrets. Make sure the API key is active "
+                        "and copied correctly."
                     )
 
                 elif response.status_code != 200:
+
                     st.error(
                         f"Gnani API error: {response.status_code}"
                     )
@@ -303,10 +326,12 @@ if uploaded_file is not None:
                     st.caption(response.text[:1000])
 
                 else:
+
                     result = response.json()
                     transcript = result.get("transcript", "")
 
                     if transcript:
+
                         st.session_state["transcript"] = transcript
                         st.session_state["agreement_saved"] = False
 
@@ -315,23 +340,27 @@ if uploaded_file is not None:
                         )
 
                     else:
+
                         st.error(
                             "No transcript returned. "
                             "Please try another recording."
                         )
 
             except requests.exceptions.Timeout:
+
                 st.error(
                     "The request timed out. Try a shorter recording "
                     "or try again later."
                 )
 
             except requests.exceptions.RequestException as e:
+
                 st.error(
                     f"Could not connect to Gnani AI: {e}"
                 )
 
             except ValueError:
+
                 st.error(
                     "Gnani AI returned an unexpected response. "
                     "Please try again."
@@ -369,6 +398,7 @@ if st.session_state["transcript"]:
             st.success("Agreement saved!")
 
         else:
+
             st.warning(
                 "Please enter the agreement before saving."
             )
@@ -530,6 +560,7 @@ if st.session_state["agreement_saved"]:
 
 st.html("""
 <div class="footer-note">
+
     <p>
         ECHOBOND 🤝 · A promise spoken. A record remembered.
     </p>
@@ -538,5 +569,6 @@ st.html("""
         This is a personal record-keeping tool, not legal proof
         or a substitute for a written agreement.
     </p>
+
 </div>
 """)
