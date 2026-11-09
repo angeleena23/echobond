@@ -16,7 +16,15 @@ st.set_page_config(
 
 load_dotenv()
 
+# Read API key locally or from Streamlit Cloud Secrets
 API_KEY = os.getenv("GNANI_API_KEY_ID")
+
+if not API_KEY:
+    try:
+        API_KEY = st.secrets.get("GNANI_API_KEY_ID")
+    except Exception:
+        API_KEY = None
+
 API_URL = "https://api.vachana.ai/stt/v3"
 
 # --------------------------------------------------
@@ -43,7 +51,12 @@ for key, value in defaults.items():
 st.html("""
 <style>
     .stApp {
-        background: linear-gradient(180deg, #f5f7ed 0%, #ffffff 65%);
+        background: linear-gradient(
+            180deg,
+            #f5f7ed 0%,
+            #ffffff 65%
+        );
+        color: #20352d !important;
     }
 
     .block-container {
@@ -52,11 +65,17 @@ st.html("""
         padding-bottom: 3rem;
     }
 
+    /* HERO */
+
     .hero {
-        background: linear-gradient(135deg, #173f35, #286653);
+        background: linear-gradient(
+            135deg,
+            #173f35,
+            #286653
+        );
         padding: 35px 30px;
         border-radius: 24px;
-        color: white;
+        color: #ffffff !important;
         margin-bottom: 24px;
         box-shadow: 0 10px 30px rgba(23, 63, 53, 0.13);
     }
@@ -69,48 +88,58 @@ st.html("""
         font-size: 12px;
         letter-spacing: 1px;
         margin-bottom: 15px;
+        color: #ffffff !important;
     }
 
     .hero h1 {
         font-size: 42px;
         margin: 0;
-        color: white;
+        color: #ffffff !important;
         font-weight: 800;
     }
 
     .hero p {
-        color: #e1eee8;
+        color: #e1eee8 !important;
         font-size: 16px;
         margin-bottom: 0;
     }
 
-    .section-card {
-        background: white;
-        border: 1px solid #e6eadf;
-        border-radius: 18px;
-        padding: 20px;
-        margin: 12px 0;
+    /* GENERAL TEXT CONTRAST */
+
+    .stApp p,
+    .stApp label,
+    .stApp h1,
+    .stApp h2,
+    .stApp h3,
+    .stApp h4,
+    .stApp [data-testid="stMarkdownContainer"],
+    .stApp [data-testid="stMetricLabel"],
+    .stApp [data-testid="stMetricValue"],
+    .stApp [data-testid="stMetricDelta"] {
+        color: #20352d !important;
     }
 
-    .section-label {
-        color: #286653;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 1.2px;
-        margin-bottom: 6px;
+    /* Preserve hero colours */
+    .hero,
+    .hero h1,
+    .hero p,
+    .hero .hero-tag {
+        color: #ffffff !important;
     }
 
-    .small-note {
-        color: #64736a;
-        font-size: 13px;
+    .hero p {
+        color: #e1eee8 !important;
     }
 
-    .footer-note {
-        text-align: center;
-        color: #77847b;
-        font-size: 12px;
-        padding-top: 25px;
+    /* INPUT TEXT */
+
+    .stApp input,
+    .stApp textarea {
+        color: #20352d !important;
+        background-color: #ffffff !important;
     }
+
+    /* METRIC CARDS */
 
     div[data-testid="stMetric"] {
         background: #f1f6ef;
@@ -119,17 +148,47 @@ st.html("""
         border: 1px solid #e1eadf;
     }
 
+    div[data-testid="stMetricLabel"] {
+        color: #52665b !important;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #173f35 !important;
+        font-weight: 800 !important;
+    }
+
+    /* BUTTONS */
+
     div.stButton > button {
         border-radius: 12px;
         font-weight: 700;
         min-height: 45px;
     }
+
+    /* FOOTER */
+
+    .footer-note {
+        text-align: center;
+        color: #64736a !important;
+        font-size: 12px;
+        padding-top: 25px;
+    }
+
+    .footer-note p {
+        color: #64736a !important;
+    }
+
 </style>
 
 <div class="hero">
-    <div class="hero-tag">VOICE-BASED WORK AGREEMENT RECORD</div>
+    <div class="hero-tag">
+        VOICE-BASED WORK AGREEMENT RECORD
+    </div>
+
     <h1>ECHOBOND 🤝</h1>
+
     <p>A promise spoken. A record remembered.</p>
+
     <p style="font-size:14px; margin-top:12px;">
         Record your work agreement, keep track of payment,
         and remember what was promised.
@@ -142,6 +201,7 @@ st.html("""
 # --------------------------------------------------
 
 st.markdown("### 🎙️ Record your agreement")
+
 st.write(
     "Upload an audio recording of the work agreement. "
     "ECHOBOND will convert your speech into text."
@@ -167,16 +227,22 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     st.audio(uploaded_file)
 
-    if st.button("✨ Convert speech to text", use_container_width=True):
+    if st.button(
+        "✨ Convert speech to text",
+        use_container_width=True
+    ):
         if not API_KEY:
-            st.error(
-                "API key not found. Please check that your .env "
-                "file contains GNANI_API_KEY_ID."
+            st.error("Gnani API key not found.")
+
+            st.info(
+                "On Streamlit Cloud, add GNANI_API_KEY_ID "
+                "under App Settings → Secrets."
             )
+
         else:
-            language_code, preferred_language = language_options[
-                selected_language
-            ]
+            language_code, preferred_language = (
+                language_options[selected_language]
+            )
 
             headers = {
                 "X-API-Key-ID": API_KEY
@@ -210,16 +276,30 @@ if uploaded_file is not None:
                     )
 
                 if response.status_code == 504:
-                    st.error("Gnani AI took too long to respond.")
+                    st.error(
+                        "Gnani AI took too long to respond."
+                    )
+
                     st.info(
-                        "Please try again after a little while. "
-                        "If it happens again, try a shorter audio recording."
+                        "Please try again later or use a shorter recording."
+                    )
+
+                elif response.status_code == 401:
+                    st.error(
+                        "Gnani API rejected the key (401 Unauthorized)."
+                    )
+
+                    st.info(
+                        "Check your API key in your Gnani dashboard "
+                        "and Streamlit Cloud Secrets. Make sure the "
+                        "key is active and copied correctly."
                     )
 
                 elif response.status_code != 200:
                     st.error(
                         f"Gnani API error: {response.status_code}"
                     )
+
                     st.caption(response.text[:1000])
 
                 else:
@@ -229,21 +309,27 @@ if uploaded_file is not None:
                     if transcript:
                         st.session_state["transcript"] = transcript
                         st.session_state["agreement_saved"] = False
-                        st.success("Transcription completed!")
+
+                        st.success(
+                            "Transcription completed!"
+                        )
+
                     else:
                         st.error(
-                            "No transcript was returned. "
+                            "No transcript returned. "
                             "Please try another recording."
                         )
 
             except requests.exceptions.Timeout:
                 st.error(
-                    "The request timed out. Please try a shorter recording "
+                    "The request timed out. Try a shorter recording "
                     "or try again later."
                 )
 
             except requests.exceptions.RequestException as e:
-                st.error(f"Could not connect to Gnani AI: {e}")
+                st.error(
+                    f"Could not connect to Gnani AI: {e}"
+                )
 
             except ValueError:
                 st.error(
@@ -256,6 +342,7 @@ if uploaded_file is not None:
 # --------------------------------------------------
 
 if st.session_state["transcript"]:
+
     st.markdown("---")
     st.markdown("### 📝 Review your agreement")
 
@@ -270,12 +357,21 @@ if st.session_state["transcript"]:
         height=150
     )
 
-    if st.button("💾 Save agreement", use_container_width=True):
+    if st.button(
+        "💾 Save agreement",
+        use_container_width=True
+    ):
+
         if st.session_state["transcript"].strip():
+
             st.session_state["agreement_saved"] = True
+
             st.success("Agreement saved!")
+
         else:
-            st.warning("Please enter the agreement before saving.")
+            st.warning(
+                "Please enter the agreement before saving."
+            )
 
 # --------------------------------------------------
 # PAYMENT CALCULATOR
@@ -292,6 +388,7 @@ st.write(
 col1, col2 = st.columns(2)
 
 with col1:
+
     st.number_input(
         "Number of work days",
         min_value=0,
@@ -307,6 +404,7 @@ with col1:
     )
 
 with col2:
+
     st.number_input(
         "Advance received (₹)",
         min_value=0,
@@ -332,6 +430,7 @@ expected_payment = max(
 )
 
 received = st.session_state["received"]
+
 difference = received - expected_payment
 
 st.markdown("#### Payment summary")
@@ -339,27 +438,34 @@ st.markdown("#### Payment summary")
 metric1, metric2 = st.columns(2)
 
 with metric1:
+
     st.metric(
         "Total agreed wages",
         f"₹{total_wage:,}"
     )
 
 with metric2:
+
     st.metric(
         "Expected remaining payment",
         f"₹{expected_payment:,}"
     )
 
 if received == expected_payment:
-    st.success("The received payment matches the expected amount.")
+
+    st.success(
+        "The received payment matches the expected amount."
+    )
 
 elif received < expected_payment:
+
     st.warning(
         f"₹{expected_payment - received:,} "
         "is still pending based on the details entered."
     )
 
 else:
+
     st.info(
         f"₹{received - expected_payment:,} "
         "more than the expected amount has been entered as received."
@@ -370,39 +476,49 @@ else:
 # --------------------------------------------------
 
 if st.session_state["agreement_saved"]:
+
     st.markdown("---")
     st.markdown("### 📋 Saved agreement summary")
 
-    st.success("Your agreement record is saved in this app session.")
+    st.success(
+        "Your agreement record is saved in this app session."
+    )
 
     st.markdown("**Agreement transcript**")
+
     st.write(st.session_state["transcript"])
 
     summary1, summary2 = st.columns(2)
 
     with summary1:
+
         st.metric(
             "Work days",
             st.session_state["work_days"]
         )
+
         st.metric(
             "Daily wage",
             f"₹{st.session_state['daily_wage']:,}"
         )
+
         st.metric(
             "Advance received",
             f"₹{st.session_state['advance']:,}"
         )
 
     with summary2:
+
         st.metric(
             "Total wages",
             f"₹{total_wage:,}"
         )
+
         st.metric(
             "Expected remaining",
             f"₹{expected_payment:,}"
         )
+
         st.metric(
             "Payment received",
             f"₹{received:,}"
@@ -414,7 +530,10 @@ if st.session_state["agreement_saved"]:
 
 st.html("""
 <div class="footer-note">
-    <p>ECHOBOND 🤝 · A promise spoken. A record remembered.</p>
+    <p>
+        ECHOBOND 🤝 · A promise spoken. A record remembered.
+    </p>
+
     <p>
         This is a personal record-keeping tool, not legal proof
         or a substitute for a written agreement.
